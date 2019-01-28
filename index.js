@@ -64,13 +64,15 @@ module.exports = class ServerlessPlugin {
       });
     });
 
-    await new Promise((resolve, reject) => extract(dstFileLoc, { dir: this.dst }, (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(err)
-      }
-    }));
+    await new Promise((resolve, reject) =>
+      extract(dstFileLoc, { dir: this.dst }, err => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(err);
+        }
+      })
+    );
 
     return fs.unlink(dstFileLoc);
   }
@@ -101,8 +103,8 @@ module.exports = class ServerlessPlugin {
 
     let applicableFunctions = this.serverless.service.getAllFunctions();
 
-    if (this.serverless.provider.runtime === "nsolid") {
-      this.serverless.provider.runtime = "provided";
+    if (this.serverless.service.provider.runtime === "nsolid") {
+      this.serverless.service.provider.runtime = "provided";
     } else {
       applicableFunctions = applicableFunctions.filter(funcName => {
         const func = this.serverless.service.getFunction(funcName);
@@ -120,6 +122,18 @@ module.exports = class ServerlessPlugin {
   }
 
   async createLayer() {
+    if (
+      this.serverless.service.provider.runtime !== "nsolid" &&
+      !this.serverless.service
+        .getAllFunctions()
+        .map(funcName => this.serverless.service.getFunction(funcName))
+        .find(func => func.runtime === "nsolid")
+    ) {
+      throw new Error(
+        "serverless-nsolid-plugin installed, but no functions configured to use this runtime. See the plugin's README.md for instructions."
+      );
+    }
+
     try {
       await this.downloadNSolidLayer();
       await this.addLicenseToLayer();
