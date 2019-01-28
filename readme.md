@@ -1,11 +1,11 @@
 # serverless-nsolid-plugin
 
-Easily use [NSolid](https://nodesource.com/products/nsolid)'s AWS Lambda [runtime monitoring service](https://nodesource.com/products/nsolid-aws-lambda) in your Serverless functions.
+Easily use NodeSource's [NSolid](https://nodesource.com/products/nsolid) for AWS Lambda [runtime monitoring service](https://nodesource.com/products/nsolid-aws-lambda) in your Serverless functions.
 
 
 ### Usage
 1. Install `serverless-nsolid-plugin` using yarn/npm
-2. Add `serverless-nsolid-plugin` to your `serverless.yml`'s `- plugins` array
+2. Add `serverless-nsolid-plugin` to your `serverless.yml`'s `plugins` array
 3. For each function you'd like to run on top of the runtime, specify `nsolid` as the `runtime` value, e.g.:
 
     ```yaml
