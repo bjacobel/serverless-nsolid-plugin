@@ -1,8 +1,13 @@
+const AWS = require("aws-sdk");
+const dotenv = require("dotenv");
+const ev = require("env-var");
+const extract = require("extract-zip");
+const fs = require("fs-extra");
 const path = require("path");
 const request = require("request");
-const AWS = require("aws-sdk");
-const fs = require("fs-extra");
-const extract = require("extract-zip");
+const validate = require('uuid-validate');
+
+const UUIDv4 = 4;
 
 module.exports = class ServerlessPlugin {
   constructor(serverless, options) {
@@ -78,7 +83,12 @@ module.exports = class ServerlessPlugin {
   }
 
   async addLicenseToLayer() {
-    const license = "";
+    dotenv.load();
+    const license = ev.get("NSOLID_LICENSE_KEY").required().asString();
+    if (!validate(license, UUIDv4)) {
+      throw new Error("NSOLID_LICENSE_KEY must be set to a valid key in the environment or .env file");
+    }
+
     await fs.rename(
       path.join(this.dst, "bootstrap"),
       path.join(this.dst, "nsolid-bs")
