@@ -1,17 +1,19 @@
 const path = require("path");
-const os = require("os");
 const request = require("request");
-const unzip = require("unzip-stream");
 const AWS = require("aws-sdk");
 const fs = require("fs-extra");
+const extract = require("extract-zip");
 
 module.exports = class ServerlessPlugin {
   constructor(serverless, options) {
     this.serverless = serverless;
     this.options = options;
 
+    this.dst = path.join(this.serverless.config.servicePath, ".nsolid");
+
     this.hooks = {
-      "before:package:compileLayers": this.createLayer.bind(this)
+      "before:package:createDeploymentArtifacts": this.createLayer.bind(this),
+      "after:package:createDeploymentArtifacts": this.cleanup.bind(this)
     };
 
     AWS.config.update({
@@ -19,7 +21,7 @@ module.exports = class ServerlessPlugin {
     });
   }
 
-  async downloadNSolidLayer(dst) {
+  async downloadNSolidLayer() {
     let lts;
 
     switch (process.release.lts) {
@@ -52,46 +54,83 @@ module.exports = class ServerlessPlugin {
       })
       .promise()).Content.Location;
 
+    await fs.mkdirp(this.dst);
+    const dstFileLoc = path.join(this.dst, "layer.zip");
+    const dstFile = fs.createWriteStream(dstFileLoc);
+
     await new Promise(resolve => {
-      request(layerUrl).pipe(unzip.Extract({ path: dst })).on("close", () => {
+      request(layerUrl).pipe(dstFile).on("finish", () => {
         resolve();
       });
     });
 
-    return dst;
+    await new Promise((resolve, reject) => extract(dstFileLoc, { dir: this.dst }, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(err)
+      }
+    }));
+
+    return fs.unlink(dstFileLoc);
   }
 
-  async addLicenseToLayer(dst) {
-    return;
+  async addLicenseToLayer() {
+    const license = "";
+    await fs.rename(
+      path.join(this.dst, "bootstrap"),
+      path.join(this.dst, "nsolid-bs")
+    );
+    await fs.writeFile(
+      path.join(this.dst, "bootstrap"),
+      `#!/bin/bash
+      export NSOLID_LICENSE_KEY=${license}
+      $(dirname "$(readlink -f "$0")")/nsolid-bs
+      `,
+      { mode: 0o755 }
+    );
   }
 
-  packageLayer(dst) {
-    Object.assign(this.serverless.service.getAllLayers(), { nsolid: {
-      path: dst,
-      name: "N|Solid Runtime"
-    }});
+  packageLayer() {
+    Object.assign(this.serverless.service.layers, {
+      nsolid: {
+        path: ".nsolid",
+        name: "NSolidRuntime"
+      }
+    });
 
-    this.serverless.service.getAllFunctions().forEach(functionName => {
+    let applicableFunctions = this.serverless.service.getAllFunctions();
+
+    if (this.serverless.provider.runtime === "nsolid") {
+      this.serverless.provider.runtime = "provided";
+    } else {
+      applicableFunctions = applicableFunctions.filter(funcName => {
+        const func = this.serverless.service.getFunction(funcName);
+        if (func.runtime === "nsolid") {
+          func.runtime = "provided";
+          return true;
+        }
+      });
+    }
+
+    applicableFunctions.forEach(functionName => {
       const func = this.serverless.service.getFunction(functionName);
-      func.layers = ['{ "Ref": "NsolidLambdaLayer" }', ...(func.layers || [])];
-    })
-  }
-
-  async cleanup(dst) {
-    return fs.remove(dst);
+      func.layers = [{ Ref: "NsolidLambdaLayer" }, ...(func.layers || [])];
+    });
   }
 
   async createLayer() {
-    const dst = path.join(os.tmpdir(), "nsolid");
-
     try {
-      await this.downloadNSolidLayer(dst);
-      await this.addLicenseToLayer(dst);
-      this.packageLayer(dst);
+      await this.downloadNSolidLayer();
+      await this.addLicenseToLayer();
+      this.packageLayer();
     } catch (e) {
+      await this.cleanup();
       throw new Error(e);
-    } finally {
-      this.cleanup(dst);
     }
+  }
+
+  async cleanup() {
+    await fs.remove(this.dst);
   }
 };
