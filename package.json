@@ -4,6 +4,9 @@
   "main": "index.js",
   "author": "Brian Jacobel <brian@bjacobel.com>",
   "license": "MIT",
+  "scripts": {
+    "test": "jest"
+  },
   "dependencies": {
     "aws-sdk": "^2.392.0",
     "dotenv": "^6.2.0",
@@ -22,5 +25,8 @@
     "runtime",
     "layer",
     "cold start"
-  ]
+  ],
+  "devDependencies": {
+    "jest": "^24.0.0"
+  }
 }
