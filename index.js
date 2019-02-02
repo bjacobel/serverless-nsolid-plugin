@@ -22,7 +22,8 @@ module.exports = class ServerlessPlugin {
     };
 
     AWS.config.update({
-      region: this.serverless.service.provider.region
+      region: this.serverless.service.provider.region,
+      credentials: false,
     });
   }
 

@@ -11,10 +11,10 @@ jest.mock("extract-zip");
 jest.mock("aws-sdk");
 
 describe("plugin", () => {
-  let plugin;
+  let plugin, config;
 
   beforeEach(() => {
-    plugin = new ServerlessNSolidPlugin({
+    config = {
       service: {
         provider: {
           region: "us-east-1"
@@ -23,13 +23,25 @@ describe("plugin", () => {
       config: {
         servicePath: "/users/code/my-lambda"
       }
-    });
+    };
+    plugin = new ServerlessNSolidPlugin(config);
   });
 
   describe("downloadNSolidLayer method", () => {
     it("tries to make a new directory", async () => {
       await plugin.downloadNSolidLayer();
       expect(fs.mkdirp).toHaveBeenCalledWith(plugin.dst);
+    });
+
+    it("does not use credentials to hit Lambda APIs", async () => {
+      jest.resetModules();
+      jest.unmock("aws-sdk");
+      const AWS = require("aws-sdk");
+      delete AWS.config.credentials;
+      const ServerlessNSolidPlugin = require("../index.js");
+      const plugin = new ServerlessNSolidPlugin(config);
+      await plugin.downloadNSolidLayer();
+      expect(AWS.config.credentials).toBeFalsy();
     });
 
     it("calls getLayerVersions and getLayerVersion on the result of that", async () => {
