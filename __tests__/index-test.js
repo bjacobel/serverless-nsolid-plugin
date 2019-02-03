@@ -28,20 +28,18 @@ describe("plugin", () => {
   });
 
   describe("downloadNSolidLayer method", () => {
+    // This test makes a real call to the network. It's the only way to test that our anonymous Lambda API call works.
+    it("does not use credentials to hit Lambda APIs", () => {
+      jest.resetModules();
+      jest.unmock("aws-sdk");
+      const ServerlessNSolidPlugin = require("../index.js");
+      const plugin = new ServerlessNSolidPlugin(config);
+      return expect(plugin.downloadNSolidLayer()).resolves.not.toThrow("CredentialsError");
+    });
+
     it("tries to make a new directory", async () => {
       await plugin.downloadNSolidLayer();
       expect(fs.mkdirp).toHaveBeenCalledWith(plugin.dst);
-    });
-
-    it("does not use credentials to hit Lambda APIs", async () => {
-      jest.resetModules();
-      jest.unmock("aws-sdk");
-      const AWS = require("aws-sdk");
-      delete AWS.config.credentials;
-      const ServerlessNSolidPlugin = require("../index.js");
-      const plugin = new ServerlessNSolidPlugin(config);
-      await plugin.downloadNSolidLayer();
-      expect(AWS.config.credentials).toBeFalsy();
     });
 
     it("calls getLayerVersions and getLayerVersion on the result of that", async () => {

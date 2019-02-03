@@ -8,6 +8,7 @@ const request = require("request");
 const validate = require('uuid-validate');
 
 const UUIDv4 = 4;
+const IdentityPoolId = "us-east-1:dac4a1c4-6179-4972-ba59-40c7f35dd9c6";
 
 module.exports = class ServerlessPlugin {
   constructor(serverless, options) {
@@ -23,7 +24,10 @@ module.exports = class ServerlessPlugin {
 
     AWS.config.update({
       region: this.serverless.service.provider.region,
-      credentials: false,
+      credentials: new AWS.CognitoIdentityCredentials({ IdentityPoolId }),
+      httpOptions: {
+        timeout: 100
+      }
     });
   }
 

@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Lets an API client access Lambda APIs using unauthenticated credentials
+Resources:
+  IDPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      IdentityPoolName: nsolid
+      AllowUnauthenticatedIdentities: True
+  IAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: NSolidLayerAccess
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Federated:
+                - cognito-identity.amazonaws.com
+            Condition:
+              StringEquals:
+                "cognito-identity.amazonaws.com:aud":
+                  Ref: IDPool
+              ForAnyValue:StringLike:
+                "cognito-identity.amazonaws.com:amr": "unauthenticated"
+            Action:
+              - "sts:AssumeRoleWithWebIdentity"
+      Path: "/"
+      Policies:
+        -
+          PolicyName: GetLayerVersion
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: Allow
+                Action: lambda:listLayerVersions
+                Resource: "*"
+        -
+          PolicyName: GetLayerDetails
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: Allow
+                Action: lambda:getLayerVersion
+                Resource: arn:aws:lambda:*:800406105498:layer:nsolid-node-*:*
+  PoolRoleAttachment:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId:
+        Ref: IDPool
+      Roles:
+        unauthenticated:
+          Fn::GetAtt: [IAMRole, Arn]
+Outputs:
+  PoolId:
+    Description: The Cognito pool id
+    Value:
+      Ref: IDPool
+

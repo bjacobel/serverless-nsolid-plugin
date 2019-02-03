@@ -19,5 +19,7 @@ module.exports = {
   config: {
     update: jest.fn()
   },
+  CredentialProviderChain: class CPC {},
+  CognitoIdentityCredentials: class CIC {},
   Lambda
 };
