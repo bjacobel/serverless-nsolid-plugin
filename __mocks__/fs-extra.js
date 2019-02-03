@@ -8,4 +8,6 @@ module.exports = {
     return writable;
   }),
   unlink: jest.fn(() => Promise.resolve()),
+  rename: jest.fn(() => Promise.resolve()),
+  writeFile: jest.fn(() => Promise.resolve()),
 };

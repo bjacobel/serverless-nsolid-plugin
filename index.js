@@ -88,8 +88,14 @@ module.exports = class ServerlessPlugin {
   }
 
   async addLicenseToLayer() {
-    dotenv.load();
-    const license = ev.get("NSOLID_LICENSE_KEY").required().asString();
+    let license;
+    try {
+      license = dotenv.load().parsed.NSOLID_LICENSE_KEY;
+      if (!license) throw new Error();
+    } catch (e) {
+      license = ev.get("NSOLID_LICENSE_KEY").required().asString();
+    }
+
     if (!validate(license, UUIDv4)) {
       throw new Error("NSOLID_LICENSE_KEY must be set to a valid key in the environment or .env file");
     }
