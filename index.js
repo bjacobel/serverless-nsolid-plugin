@@ -6,7 +6,6 @@ const fs = require("fs-extra");
 const path = require("path");
 const request = require("request");
 
-const UUIDv4 = 4;
 const IdentityPoolId = "us-east-1:dac4a1c4-6179-4972-ba59-40c7f35dd9c6";
 
 module.exports = class ServerlessPlugin {
@@ -18,7 +17,8 @@ module.exports = class ServerlessPlugin {
 
     this.hooks = {
       "before:package:createDeploymentArtifacts": this.createLayer.bind(this),
-      "after:package:createDeploymentArtifacts": this.cleanup.bind(this)
+      "after:package:createDeploymentArtifacts": this.cleanup.bind(this),
+      "before:invoke:local:invoke": this.preinvoke.bind(this)
     };
 
     AWS.config.update({
@@ -96,7 +96,9 @@ module.exports = class ServerlessPlugin {
     }
 
     if (!license || !license.length) {
-      throw new Error("NSOLID_LICENSE_KEY must be set in the environment or .env file");
+      throw new Error(
+        "NSOLID_LICENSE_KEY must be set in the environment or .env file"
+      );
     }
 
     await fs.rename(
@@ -166,5 +168,23 @@ module.exports = class ServerlessPlugin {
 
   async cleanup() {
     await fs.remove(this.dst);
+  }
+
+  preinvoke() {
+    // Fake this so that Serverless will let us invoke locally.
+    const runtime = "nodejs";
+
+    if (this.serverless.service.provider.runtime === "nsolid") {
+      this.serverless.service.provider.runtime = runtime;
+    }
+
+    this.serverless.service
+      .getAllFunctions()
+      .map(functionName => this.serverless.service.getFunction(functionName))
+      .forEach(func => {
+        if (func.runtime === "nsolid") {
+          func.runtime = runtime;
+        }
+      });
   }
 };

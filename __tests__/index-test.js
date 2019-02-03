@@ -3,7 +3,6 @@ const AWS = require("aws-sdk");
 const request = require("request");
 const unzip = require("extract-zip");
 const dotenv = require("dotenv");
-const validate = require("uuid-validate");
 
 const ServerlessNSolidPlugin = require("../index.js");
 
