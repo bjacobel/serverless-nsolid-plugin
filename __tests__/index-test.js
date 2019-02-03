@@ -38,7 +38,9 @@ describe("plugin", () => {
       jest.unmock("aws-sdk");
       const ServerlessNSolidPlugin = require("../index.js");
       const plugin = new ServerlessNSolidPlugin(config);
-      return expect(plugin.downloadNSolidLayer()).resolves.not.toThrow("CredentialsError");
+      return expect(plugin.downloadNSolidLayer()).resolves.not.toThrow(
+        "CredentialsError"
+      );
     });
 
     it("tries to make a new directory", async () => {
@@ -76,7 +78,7 @@ describe("plugin", () => {
 
   describe("addLicenseToLayer method", () => {
     afterEach(() => {
-      delete process.env.NSOLID_LICENSE_KEY
+      delete process.env.NSOLID_LICENSE_KEY;
     });
 
     it("gets the license from a dotenv file if present", async () => {
@@ -88,7 +90,11 @@ describe("plugin", () => {
       }));
 
       await plugin.addLicenseToLayer();
-      expect(validate).toHaveBeenCalledWith(license, expect.any(Number));
+      expect(fs.writeFile).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.stringContaining(license),
+        expect.any(Object)
+      );
     });
 
     it("gets the license from the environment if a dotenv file is not present", async () => {
@@ -99,7 +105,11 @@ describe("plugin", () => {
       Object.assign(process.env, { NSOLID_LICENSE_KEY: license });
 
       await plugin.addLicenseToLayer();
-      expect(validate).toHaveBeenCalledWith(license, expect.any(Number));
+      expect(fs.writeFile).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.stringContaining(license),
+        expect.any(Object)
+      );
     });
 
     it("gets the license from the environment if a dotenv file is present but doesn't have the value", async () => {
@@ -110,7 +120,11 @@ describe("plugin", () => {
       Object.assign(process.env, { NSOLID_LICENSE_KEY: license });
 
       await plugin.addLicenseToLayer();
-      expect(validate).toHaveBeenCalledWith(license, expect.any(Number));
+      expect(fs.writeFile).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.stringContaining(license),
+        expect.any(Object)
+      );
     });
 
     it("throws if it can't get the license from the dotenv file or the environment", async () => {

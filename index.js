@@ -5,7 +5,6 @@ const extract = require("extract-zip");
 const fs = require("fs-extra");
 const path = require("path");
 const request = require("request");
-const validate = require('uuid-validate');
 
 const UUIDv4 = 4;
 const IdentityPoolId = "us-east-1:dac4a1c4-6179-4972-ba59-40c7f35dd9c6";
@@ -96,8 +95,8 @@ module.exports = class ServerlessPlugin {
       license = ev.get("NSOLID_LICENSE_KEY").required().asString();
     }
 
-    if (!validate(license, UUIDv4)) {
-      throw new Error("NSOLID_LICENSE_KEY must be set to a valid key in the environment or .env file");
+    if (!license || !license.length) {
+      throw new Error("NSOLID_LICENSE_KEY must be set in the environment or .env file");
     }
 
     await fs.rename(
