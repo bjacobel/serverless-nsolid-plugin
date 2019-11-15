@@ -34,6 +34,9 @@ module.exports = class ServerlessPlugin {
     let lts;
 
     switch (process.release.lts) {
+      case "Erbium":
+        lts = 12
+        break;
       case "Dubnium":
         lts = 10;
         break;
