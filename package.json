@@ -1,6 +1,6 @@
 {
   "name": "serverless-nsolid-plugin",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "main": "index.js",
   "author": "Brian Jacobel <brian@bjacobel.com>",
   "license": "MIT",
@@ -27,5 +27,8 @@
   ],
   "devDependencies": {
     "jest": "^24.0.0"
+  },
+  "engines": {
+    "node": "~12.13"
   }
 }
