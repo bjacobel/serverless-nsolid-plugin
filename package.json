@@ -1,6 +1,6 @@
 {
   "name": "serverless-nsolid-plugin",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "main": "index.js",
   "author": "Brian Jacobel <brian@bjacobel.com>",
   "license": "MIT",
@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "aws-sdk": "^2.392.0",
-    "dotenv": "^6.2.0",
+    "dotenv": "^8.2.0",
     "env-var": "^3.4.2",
     "extract-zip": "^1.6.7",
     "fs-extra": "^7.0.1",

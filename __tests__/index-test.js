@@ -71,7 +71,7 @@ describe("plugin", () => {
 
     it("gets the license from a dotenv file if present", async () => {
       const license = "fromdotenv";
-      dotenv.load.mockImplementationOnce(() => ({
+      dotenv.config.mockImplementationOnce(() => ({
         parsed: {
           NSOLID_LICENSE_KEY: license
         }
@@ -87,7 +87,7 @@ describe("plugin", () => {
 
     it("gets the license from the environment if a dotenv file is not present", async () => {
       const license = "fromenvironment";
-      dotenv.load.mockImplementationOnce(() => ({
+      dotenv.config.mockImplementationOnce(() => ({
         parsed: {}
       }));
       Object.assign(process.env, { NSOLID_LICENSE_KEY: license });
@@ -102,7 +102,7 @@ describe("plugin", () => {
 
     it("gets the license from the environment if a dotenv file is present but doesn't have the value", async () => {
       const license = "fromenvironment";
-      dotenv.load.mockImplementationOnce(() => ({
+      dotenv.config.mockImplementationOnce(() => ({
         parsed: { NSOLID_LICENSE_KEY: "" }
       }));
       Object.assign(process.env, { NSOLID_LICENSE_KEY: license });
@@ -116,7 +116,7 @@ describe("plugin", () => {
     });
 
     it("throws if it can't get the license from the dotenv file or the environment", async () => {
-      dotenv.load.mockImplementationOnce(() => ({
+      dotenv.config.mockImplementationOnce(() => ({
         parsed: {}
       }));
 

@@ -92,7 +92,7 @@ module.exports = class ServerlessPlugin {
   async addLicenseToLayer() {
     let license;
     try {
-      license = dotenv.load().parsed.NSOLID_LICENSE_KEY;
+      license = dotenv.config().parsed.NSOLID_LICENSE_KEY;
       if (!license) throw new Error();
     } catch (e) {
       license = ev.get("NSOLID_LICENSE_KEY").required().asString();
